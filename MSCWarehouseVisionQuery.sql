@@ -1,177 +1,89 @@
 delete from [WarehouseVision].[dbo].[WV_LOG_FILE] where wvform = 'importing processing' and  wvline =12
-
 insert into [WarehouseVision].[dbo].[WV_LOG_FILE] (siteno,wvform,wvline,wvstack,wvERROR,wvdate,wvlog_id)
-
 values ('MONITOR','importing processing',12,'1','start',GETDATE(),'Monitor')
 
  
-
- 
-
- 
-
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set cubic_code = cartonnumber
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD], [WarehouseVision].[dbo].[CartonRules]
-
 where (CtnWidth = loc_width) and
-
 (SUBSTRING(cubic_code,1,2)= CartonNumber)
-
 and (LEN(cubic_code) = 4)
 
- 
-
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set cubic_code = cartonnumber
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD], [WarehouseVision].[dbo].[CartonRules]
-
 where (CtnWidth = loc_width) and
-
 (SUBSTRING(cubic_code,3,2)= CartonNumber)
-
 and (LEN(cubic_code) = 4)
 
- 
-
- 
 
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set cubic_code = cartonnumber
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD], [WarehouseVision].[dbo].[CartonRules]
-
 where (CtnWidth = loc_width) and (Ctnheight = loc_height)
-
 and ((cubic_code) = '9999')
 
- 
-
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set location_no = SUBSTRING(location_no,1,8) + ((SUBSTRING(location_no,6,2) + ((loc_height +1)*(seq_value -1)) )*10)
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 WHERE multi_level >1 and seq_value >1
 
- 
-
 update msc_location_build
-
 set row = ceiling((SUBSTRING(location_no,4,2)/2)+.11)-3,
-
 SIDE = SUBSTRING(location_no,1,1) + case when SUBSTRING(location_no,4,2)<50 then 'LOW' else 'HIGH' end,
-
 activity = STOCKING_LEVELS.activity, USPD = STOCKING_LEVELS.uspd,
-
 workindex =
-
 case when SUBSTRING(location_no,4,2)<50 then
-
 (ceiling((SUBSTRING(location_no,4,2)/2)+.11) - 3) * (36*2) + abs(SUBSTRING(location_no,6,2) - 40)
-
 else
-
 (ceiling((SUBSTRING(location_no,4,2)-43/2)+.11) - 3) * (36*2) + abs(SUBSTRING(location_no,6,2) - 40)
-
 end
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 left join [WarehouseVision].[dbo].[STOCKING_LEVELS] on (STOCKING_LEVELS.Siteno = msc_location_build.Siteno) and (STOCKING_LEVELS.item = msc_location_build.sku)
 
- 
-
- 
 
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set activity = 0
-
 where activity is null
 
- 
-
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set uspd = 0
-
 where uspd is null
 
  
 
- 
-
- 
-
- 
-
- 
-
- 
-
- 
 
  
 
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set Capacity = LOC_CAPCTY
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 inner join  [WarehouseVision].[dbo].[IMPORT_108_WMS_ATTRIBUTES] on IMPORT_108_WMS_ATTRIBUTES.SiteNO = MSC_LOCATION_BUILD.Siteno
-
 and  IMPORT_108_WMS_ATTRIBUTES.sku = MSC_LOCATION_BUILD.sku
-
 and  IMPORT_108_WMS_ATTRIBUTES.bin_loc = MSC_LOCATION_BUILD.LOCATION_NO
-
 and IMPORT_108_WMS_ATTRIBUTES.Siteno = MSC_LOCATION_BUILD.siteno
 
- 
-
- 
-
+  
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD] set workindex = 1  where substring(location_no,4,2) = '03' and substring(location_no,1,1) >='1'   ---------Not sure what this statement is doing
-
 and substring(location_no,1,1) <='3' and siteno <> 'ATL'
 
- 
 
  
 
  
 
 /*** ATL ***/
-
 /*** ATL ***/
-
 /*** ATL ***/
-
 /*** ATL ***/
 
  
-
  
-
- 
-
- 
-
 /****
-
 Old Section: Aisles 27 to 61
-
 Low side: Facing 03 to 28 no end cap                                           --------------There are endcaps present 02 & 32
-
 High side: Facing 33 to 55 no end cap 
-
 ****/
 
  
@@ -179,94 +91,51 @@ High side: Facing 33 to 55 no end cap
  
 
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set row = ceiling((SUBSTRING(location_no,4,2)/2))-0,
-
 SIDE = SUBSTRING(location_no,1,1) + case when SUBSTRING(location_no,4,2)<32 then 'LOW' else 'HIGH' end,
-
 activity = [WarehouseVision].[dbo].[STOCKING_LEVELS].activity, USPD = [WarehouseVision].[dbo].[STOCKING_LEVELS].uspd,
-
 workindex = --work index is the total distance from the conveyor belt to the item and back. this includes getting a ladder and putting it back if needed (ladder is arbitrary 100 right now)
-
 case when SUBSTRING(location_no,4,2)<29 then
-
 (ceiling((CAST(RIGHT(LEFT(location_no,5),2) AS int) / 2.0))) * (36*2) +
-
               CASE WHEN SUBSTRING(location_no,6,2)<'07' THEN 12 ELSE
-
               CASE WHEN SUBSTRING(location_no,6,2)>='22' THEN 100 ELSE 0 END END
-
 else
-
 (ceiling(((CAST(RIGHT(LEFT(location_no,5),2) AS int) -32) / 2.0))) * (36*2) +
-
 --(ceiling(((SUBSTRING(location_no,4,2)-32)/2)) - 0) * (36*2) +
-
               CASE WHEN SUBSTRING(location_no,6,2)<'07' THEN 12 ELSE
-
               CASE WHEN SUBSTRING(location_no,6,2)>='22' THEN 100 ELSE 0 END END
-
 end
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 left join [WarehouseVision].[dbo].[STOCKING_LEVELS] on ([WarehouseVision].[dbo].[STOCKING_LEVELS].Siteno = msc_location_build.Siteno) and ([WarehouseVision].[dbo].[STOCKING_LEVELS].item = msc_location_build.sku)
-
 where msc_location_build.siteno = 'ATL'
-
 and SUBSTRING(location_no,2,2) <='61' 
-
-  and (SUBSTRING(location_no,1,1) ='1' or SUBSTRING(location_no,1,1) ='2' or SUBSTRING(location_no,1,1) ='3')
+and (SUBSTRING(location_no,1,1) ='1' or SUBSTRING(location_no,1,1) ='2' or SUBSTRING(location_no,1,1) ='3')
 
  
-
 --ATL: 3rd floor bins aisle 27 low number side?
 
  
-
 /****
-
 New Section Aisles 62 and above
-
 Low side: Facing 02 (end cap) to 30
-
 High side: Facing 50 (end cap) to 80 
-
- 
-
 ****/
 
-
 update [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
-
 set row = ceiling((SUBSTRING(location_no,4,2)/2)+.11)-0,
-
 SIDE = SUBSTRING(location_no,1,1) + case when SUBSTRING(location_no,4,2)<49 then 'LOW' else 'HIGH' end,
-
 activity = STOCKING_LEVELS.activity, USPD = STOCKING_LEVELS.uspd,
-
 workindex =
-
 case when SUBSTRING(location_no,4,2)<51 then
-
 (ceiling((CAST(RIGHT(LEFT(location_no,5),2) AS int) / 2.0))) * (36*2) +
-
               CASE WHEN SUBSTRING(location_no,6,2)<'07' THEN 12 ELSE
-
               CASE WHEN SUBSTRING(location_no,6,2)>='22' THEN 100 ELSE 0 END END
-
               else
 
 (ceiling(((CAST(RIGHT(LEFT(location_no,5),2) AS int) -50) / 2.0))) * (36*2) +
-
---(ceiling(((SUBSTRING(location_no,4,2)-50)/2.0)+.11) - 0) * (36*2) +
-
               CASE WHEN SUBSTRING(location_no,6,2)<'07' THEN 12 ELSE
-
               CASE WHEN SUBSTRING(location_no,6,2)>='22' THEN 100 ELSE 0 END END
-
 end
-
 from [WarehouseVision].[dbo].[MSC_LOCATION_BUILD]
 
 left join [WarehouseVision].[dbo].[STOCKING_LEVELS] on (STOCKING_LEVELS.Siteno = msc_location_build.Siteno) and (STOCKING_LEVELS.item = msc_location_build.sku)
